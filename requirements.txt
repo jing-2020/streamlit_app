@@ -18,3 +18,4 @@ numpy
 streamlit==0.82.0
 streamlit_echarts==0.3.0
 scikit_learn==0.24.2
+tensorboard==2.2.1
