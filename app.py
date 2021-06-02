@@ -20,9 +20,9 @@ from utils import *
 
 @st.cache
 def load_data():
-    inp=r".\数据\9月4日高日.inp"
+    inp=r"./数据/9月4日高日.inp"
     wn = wntr.network.WaterNetworkModel(inp)
-    df = pd.read_excel(r'数据/流量分析.xlsx',sheet_name='总表',header=0,index_col=None)
+    df = pd.read_excel(r'./数据/流量分析.xlsx',sheet_name='总表',header=0,index_col=None)
     df.columns = ['节点索引','可识别最小流量','可识别最大流量',
                   '无法识别最小流量','无法识别最大流量',
                   '最小爆管流量', '最大爆管流量','属性','所属分区']
@@ -32,7 +32,7 @@ def load_data():
 @st.cache
 def runs(df):
     import torch
-    model = torch.load(r'.\model.pkl').to('cpu')
+    model = torch.load(r'./model.pkl').to('cpu')
     model.eval()
     data = torch.from_numpy(df.values.astype(np.float32))
     py = model(data)
@@ -45,10 +45,10 @@ def page1(model,view):
         if view == "管网可视化":
             with st.beta_container():
                 st.header('1.爆管识别分布图')
-                with open(r'.\plotly_network.html','r') as f:
+                with open(r'./plotly_network.html','r') as f:
                     plotlys = f.read()
                 html(plotlys,width=700,height=700)
-                with open(r'leaflet_network.html', 'r',encoding='utf-8') as f:
+                with open(r'./leaflet_network.html', 'r',encoding='utf-8') as f:
                     leaflet = f.read()
                 html(leaflet, width=700, height=700)
                 st.info('''
@@ -59,7 +59,7 @@ def page1(model,view):
 
             with st.beta_container():
                 st.header('2.管网分区分布图')
-                with open(r'.\area.html', 'r') as f:
+                with open(r'./area.html', 'r') as f:
                     plotlys = f.read()
                 html(plotlys, width=600, height=700)
                 folium_static(trans_utm_plot().show())
