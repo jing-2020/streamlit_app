@@ -10,9 +10,11 @@ import sys
 import wntr
 import pyecharts.options as opts
 from pyecharts.charts import Parallel
+import os
+path = os.getcwd()
 
 from torch import dtype
-sys.path.append('./')
+sys.path.append(path)
 from model_with_se import *
 from utils import *
 
