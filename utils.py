@@ -16,7 +16,7 @@ from folium.plugins import DualMap,MousePosition
 from branca.colormap import linear
 import utm
 
-def area_id_set(file=r".\数据\24分区.xlsx"):
+def area_id_set(file=r"./数据/24分区.xlsx"):
     '''
     根据输入的文件统计每个分区的节点索引集合
     Args:
@@ -82,7 +82,7 @@ class trans_utm_longlat():
 # @st.cache
 class trans_utm_plot():
 
-    def __init__(self,file=r'数据/24.geojson',is_add_data=True):
+    def __init__(self,file=r'./数据/24.geojson',is_add_data=True):
         utm=[(73185.78, 45250.2),(72247.25, 44956.51)]
         longlat=[(120.62,31.32),(120.61,31.31)]
         trans = trans_utm_longlat(utm, longlat)
@@ -98,12 +98,12 @@ class trans_utm_plot():
         if is_add_data:
             self.add_data()
 
-    def save_geo_file(self,path='t24.geojson'):
+    def save_geo_file(self,path='./t24.geojson'):
         self.df_ll.to_file(path,driver='GeoJSON')
 
 
     def add_data(self):
-        df=pd.read_excel(r'数据/流量分析.xlsx',sheet_name='分区',header=0,index_col=None)
+        df=pd.read_excel(r'./数据/流量分析.xlsx',sheet_name='分区',header=0,index_col=None)
         name = self.df_ll['name'].values
         area_set = area_id_set()
         data = []
