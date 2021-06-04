@@ -10,11 +10,9 @@ import sys
 import wntr
 import pyecharts.options as opts
 from pyecharts.charts import Parallel
-import os
-path = os.getcwd()
 
 from torch import dtype
-sys.path.append(path)
+sys.path.append(r'./')
 from model_with_se import *
 from utils import *
 
@@ -22,7 +20,7 @@ from utils import *
 def load_data():
     inp=r"./数据/9月4日高日.inp"
     wn = wntr.network.WaterNetworkModel(inp)
-    df = pd.read_excel(r'./数据/流量分析.xlsx',sheet_name='总表',header=0,index_col=None)
+    df = pd.read_excel(r'数据/流量分析.xlsx',sheet_name='总表',header=0,index_col=None)
     df.columns = ['节点索引','可识别最小流量','可识别最大流量',
                   '无法识别最小流量','无法识别最大流量',
                   '最小爆管流量', '最大爆管流量','属性','所属分区']
@@ -48,7 +46,7 @@ def page1(model,view):
                 with open(r'./plotly_network.html','r') as f:
                     plotlys = f.read()
                 html(plotlys,width=700,height=700)
-                with open(r'./leaflet_network.html', 'r',encoding='utf-8') as f:
+                with open(r'leaflet_network.html', 'r',encoding='utf-8') as f:
                     leaflet = f.read()
                 html(leaflet, width=700, height=700)
                 st.info('''
@@ -126,7 +124,7 @@ def page2(pre_model):
     if pre_model == 'FA-DenseNet':
         st.title('FA-DenseNet模型分析')
         st.subheader('请选择输入数据的方式:')
-        radio = st.radio('',['上传数据文件'])
+        radio = st.radio('',['上传数据文件','输入数据'])
         if radio == '上传数据文件':
             with st.beta_container():
                 file=st.file_uploader('请输入需要预测的压力监测点压降数据：',type='csv')
@@ -161,7 +159,9 @@ def page2(pre_model):
                     print(df.values)
         run = st.radio('',['输入数据···','运行模型'])
         if run == '运行模型':
+            # try:
             pre_id = runs(df)
+            pre_id = pre_id.reshape((-1,24))
             df['pre_top1_id'] = pre_id.numpy()[:,0]+1
             df['pre_top2_id'] = pre_id.numpy()[:, 1]+1
             df['pre_top3_id'] = pre_id.numpy()[:, 2]+1
@@ -169,14 +169,16 @@ def page2(pre_model):
             s=st.selectbox('请选择需要展示的数据索引',[i+1 for i in range(df.shape[0])])
             pre_data = np.zeros(24)
             color_r = np.zeros(24)
-            pre_data[df['pre_top1_id'][int(s)]-1] = 1
-            color_r[df['pre_top1_id'][int(s)] - 1] = 3
-            pre_data[df['pre_top2_id'][int(s)]-1] = 2
-            color_r[df['pre_top2_id'][int(s)] - 1] = 2
-            pre_data[df['pre_top3_id'][int(s)]-1] = 3
-            color_r[df['pre_top3_id'][int(s)] - 1] = 1
+            pre_data[df['pre_top1_id'][int(s)-1]-1] = 1
+            color_r[df['pre_top1_id'][int(s)-1] - 1] = 3
+            pre_data[df['pre_top2_id'][int(s)-1]-1] = 2
+            color_r[df['pre_top2_id'][int(s)-1] - 1] = 2
+            pre_data[df['pre_top3_id'][int(s)-1]-1] = 3
+            color_r[df['pre_top3_id'][int(s)-1] - 1] = 1
             map = trans_utm_plot.show_Choropleth(pre_data,color_r)
             folium_static(map)
+            # except:
+            #     st.info('请先输入数据，再运行模型！')
 
     elif pre_model == 'ELM':
         st.warning('ELM模型还没有分析结果！')

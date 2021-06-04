@@ -12,9 +12,11 @@ import streamlit as st
 from shapely.geometry import Polygon,MultiPolygon
 from scipy.spatial.distance import pdist
 import folium
-from folium.plugins import DualMap,MousePosition
+from folium import PolyLine
+from folium.plugins import DualMap,MousePosition,AntPath,PolyLineTextPath
 from branca.colormap import linear
 import utm
+
 
 def area_id_set(file=r"./数据/24分区.xlsx"):
     '''
@@ -89,16 +91,22 @@ class trans_utm_plot():
         df = gpd.read_file(file)
         self.df_ll = gpd.GeoDataFrame()
         df_ll_geo = []
+        center_lat = []
+        center_lon = []
         for num,geo in enumerate(df.geometry):
             coords = np.array(geo[0].exterior.coords)
             lon,lat = trans.transform(coords)
+            center_lat.append(np.mean(lat))
+            center_lon.append(np.mean(lon))
             df_ll_geo.append(MultiPolygon([Polygon(zip(lon,lat))]))
         self.df_ll.geometry = df_ll_geo
         self.df_ll['name'] = df['Burst_id']
+        self.df_ll['center_lat'] = center_lat
+        self.df_ll['center_lon'] = center_lon
         if is_add_data:
             self.add_data()
 
-    def save_geo_file(self,path='./t24.geojson'):
+    def save_geo_file(self,path=r'./t24.geojson'):
         self.df_ll.to_file(path,driver='GeoJSON')
 
 
@@ -132,7 +140,7 @@ class trans_utm_plot():
             else:
                 type_data.append('top'+str(int(i))+'分区')
         df_ll['area_type'] = type_data
-        map = folium.Map((31.32,120.62),zoom_start=12
+        map = folium.Map((31.296,120.63),zoom_start=13
                          ,tiles='cartodbpositron'
                          )
         folium.Choropleth(
@@ -163,12 +171,23 @@ class trans_utm_plot():
                                           max_width=800,
                                           )
         ).add_to(map)
+        center_latlon = np.array(list(zip(df_ll['center_lat'].values, df_ll['center_lon'].values)))
+        path = center_latlon[np.argsort(color_rs)[-1:-4:-1],:]
+        paths = folium.PolyLine(path).add_to(map)
+        attr = {"font-weight": "bold", "font-size": "18"}
+        PolyLineTextPath(
+            paths, "👷", repeat=True, offset=-8, attributes=attr,
+            center=True
+        ).add_to(map)
+        AntPath(
+            locations=path, dash_array=[20, 30],reverse=False
+        ).add_to(map)
         return map
 
     def show(self,map=None,colormap=None,text="区域识别率"):
         if map is None:
             self.add_data()
-            map = folium.Map((31.32,120.62),zoom_start=12
+            map = folium.Map((31.296,120.63),zoom_start=13
                          ,tiles='cartodbpositron'
                          )
         if colormap is None:
@@ -230,7 +249,7 @@ class trans_utm_plot():
 
 
 if __name__ == '__main__':
-    print(area_id_set())
+    trans_utm_plot().save_geo_file()
     # trans_utm_wgs()
     # df_ll = gpd.read_file('t24.geojson')
     # map = folium.Map((31.32, 120.62), zoom_start=12
